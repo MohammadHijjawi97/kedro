@@ -30,6 +30,13 @@ if TYPE_CHECKING:
     from kedro.pipeline.node import Node
 
 
+def _is_generator_node(node: Node) -> bool:
+    """Check whether the node function is a generator function, looking
+    through decorators that set ``__wrapped__`` (e.g. ``functools.wraps``).
+    """
+    return inspect.isgeneratorfunction(inspect.unwrap(node.func))
+
+
 class TaskError(Exception):
     """``TaskError`` raised by ``Task``
     in case of failure of provided task arguments
@@ -57,7 +64,7 @@ class Task:
         self.parallel = parallel
 
     def execute(self) -> Node:
-        if self.is_async and inspect.isgeneratorfunction(self.node.func):
+        if self.is_async and _is_generator_node(self.node):
             raise ValueError(
                 f"Async data loading and saving does not work with "
                 f"nodes wrapping generator functions. Please make "
@@ -173,7 +180,7 @@ class Task:
         # Stream chunks only for generator-function nodes, so iterable
         # business objects (e.g. ``mne.Epochs``) are passed to
         # ``catalog.save`` unchanged. See kedro-org/kedro#5412.
-        if outputs and inspect.isgeneratorfunction(node.func):
+        if outputs and _is_generator_node(node):
             # Python dictionaries are ordered, so we are sure
             # the keys and the chunk streams are in the same order
             # [a, b, c]

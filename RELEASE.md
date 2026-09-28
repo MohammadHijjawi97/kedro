@@ -4,6 +4,8 @@
 
 ## Bug fixes and other changes
 
+- Fixed runners saving the generator object instead of streaming its chunks when a generator-function node is wrapped by a decorator that uses `functools.wraps`. Such nodes are now also rejected by async runs, like undecorated generator nodes.
+
 ## Documentation changes
 
 ## Breaking changes to the API

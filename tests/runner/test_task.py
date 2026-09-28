@@ -1,3 +1,5 @@
+from functools import wraps
+
 import pytest
 
 from kedro.framework.hooks.manager import _NullPluginManager
@@ -8,6 +10,14 @@ from kedro.runner.task import TaskError
 
 def generate_one():
     yield from range(10)
+
+
+def passthrough(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+
+    return wrapper
 
 
 class TestTask:
@@ -31,6 +41,19 @@ class TestTask:
                 hook_manager=_NullPluginManager(),
                 is_async=True,
             )
+            task.execute()
+
+    def test_decorated_generator_fail_async(self, mocker, catalog):
+        catalog["result"] = mocker.Mock()
+        n = node(passthrough(generate_one), inputs=None, outputs="result")
+        task = Task(
+            node=n,
+            catalog=catalog,
+            hook_manager=_NullPluginManager(),
+            is_async=True,
+        )
+
+        with pytest.raises(ValueError, match="nodes wrapping generator functions"):
             task.execute()
 
     @pytest.mark.parametrize("is_async", [False, True])
