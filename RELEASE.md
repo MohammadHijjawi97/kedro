@@ -4,6 +4,8 @@
 
 ## Bug fixes and other changes
 
+- Fixed `Node.name` raising `AttributeError` for nodes without an explicit `name` whose function is a callable object (an instance of a class that defines `__call__`), including when wrapped in `functools.partial`. The default name now uses the class name.
+
 ## Documentation changes
 
 ## Breaking changes to the API

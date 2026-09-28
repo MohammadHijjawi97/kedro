@@ -465,6 +465,23 @@ class TestNames:
         assert re.match(r"^partial\(biconcat\)__[0-9a-f]{8}$", n.name)
         assert n.short_name == "Biconcat"
 
+    def test_callable_object(self):
+        class Identity:
+            def __call__(self, input1):
+                return input1
+
+        n = node(Identity(), ["in"], ["out"])
+        assert re.match(r"^Identity__[0-9a-f]{8}$", n.name)
+        assert n.name == node(Identity(), ["in"], ["out"]).name
+
+    def test_partial_callable_object(self):
+        class Concat:
+            def __call__(self, input1, input2):
+                return input1 + input2
+
+        n = node(partial(Concat(), input2="b"), ["in"], ["out"])
+        assert re.match(r"^partial\(Concat\)__[0-9a-f]{8}$", n.name)
+
 
 class TestNodeInputOutputNameValidation:
     @staticmethod
